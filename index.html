@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jira notify</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <style>
+      body,
+      html {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      .border-box {
+        height: 600px;
+        border: 1px solid rgb(31, 71, 163);
+      }
+      #root {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #check-config-message {
+        color: #db3737;
+      }
+    </style>
+  </head>
+  <body style="background: white">
+    <div class="border-box" id="root">
+      <div>Loading...</div>
+      <div id="check-config-message" style="display: none">Check config at ~/.confluence-notify</div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require('electron');
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+
+      let isFocuses = false;
+      let configSent = false;
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        let config = {};
+        const configFile = path.resolve(os.homedir(), '.confluence-notify');
+        try {
+          const rawData = fs.readFileSync(configFile, 'utf8');
+          config = JSON.parse(rawData);
+        } catch (e) {
+          fs.writeFileSync(
+            configFile,
+            JSON.stringify(
+              {
+                root: '',
+                auth: {
+                  pinSecret: '',
+                  username: '',
+                  password: '',
+                },
+              },
+              null,
+              2
+            ),
+            'utf8'
+          );
+        }
+
+        if (!config.root) {
+          document.querySelector('#check-config-message').style.display = 'block';
+          return;
+        }
+
+        const webview = document.createElement('webview');
+        webview.setAttribute('src', config.root);
+        webview.setAttribute('preload', './preload.js');
+        webview.setAttribute('nodeintegration', true);
+        webview.setAttribute('nodeIntegrationInSubFrames', true);
+        webview.style.width = '100%';
+        webview.style.height = '100%';
+        const rootEl = document.querySelector('#root');
+        rootEl.innerHTML = '';
+        rootEl.appendChild(webview);
+
+        webview.addEventListener('dom-ready', () => {
+          webview.send('config', config);
+        });
+
+        ipcRenderer.on('focus', () => {
+          webview.send('wv-focus');
+        });
+
+        ipcRenderer.on('blur', () => {
+          webview.send('wv-blur');
+        });
+
+        webview.addEventListener('ipc-message', (event) => {
+          if (event.channel === 'tasksCounter') {
+            ipcRenderer.send('updateCounter', event.args[0].count);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

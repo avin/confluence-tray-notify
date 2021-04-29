@@ -16,7 +16,7 @@ if (app.dock) {
 let closeTime = +new Date();
 
 const createTray = () => {
-  tray = new Tray(path.join(__dirname, 'jira.png'));
+  tray = new Tray(path.join(__dirname, 'icons', 'jira.png'));
   tray.on('click', function (event) {
     if (+new Date() - closeTime > 200) {
       showWindow();
@@ -65,7 +65,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    icon: path.join(__dirname, 'jira.png'),
+    icon: path.join(__dirname, 'icons', 'jira.png'),
   });
 
   win.setMenuBarVisibility(false);
@@ -105,9 +105,9 @@ ipcMain.on('updateCounter', async (event, data) => {
   }
 
   if (hasActiveNotify) {
-    tray.setImage(path.join(__dirname, 'jira-alarm.png'));
+    tray.setImage(path.join(__dirname, 'icons', 'jira-alarm.png'));
   } else {
-    tray.setImage(path.join(__dirname, 'jira.png'));
+    tray.setImage(path.join(__dirname, 'icons', 'jira.png'));
   }
 });
 
@@ -132,7 +132,7 @@ app.on('browser-window-focus', (event, win) => {
   win.webContents.send('focus');
   hasActiveNotify = false;
 
-  tray.setImage(path.join(__dirname, 'jira.png'));
+  tray.setImage(path.join(__dirname, 'icons', 'jira.png'));
 });
 
 app.on('browser-window-blur', (event, win) => {

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "Avin Lambrero",
   "description": "Confluence tray notify",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
